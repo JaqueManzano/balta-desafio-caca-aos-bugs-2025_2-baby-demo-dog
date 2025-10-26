@@ -1,21 +1,31 @@
+using BugStore.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Reflection;
+
 var builder = WebApplication.CreateBuilder(args);
+
+var connString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<AppDbContext>(x => x.UseSqlite(connString));
+
+builder.Services.AddControllers();
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly()));
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 
-app.MapGet("/", () => "Hello World!");
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "BugStore API v1");
+        options.RoutePrefix = string.Empty;
+    });
+}
 
-app.MapGet("/v1/customers", () => "Hello World!");
-app.MapGet("/v1/customers/{id}", () => "Hello World!");
-app.MapPost("/v1/customers", () => "Hello World!");
-app.MapPut("/v1/customers/{id}", () => "Hello World!");
-app.MapDelete("/v1/customers/{id}", () => "Hello World!");
-
-app.MapGet("/v1/products", () => "Hello World!");
-app.MapGet("/v1/products/{id}", () => "Hello World!");
-app.MapPost("/v1/products", () => "Hello World!");
-app.MapPut("/v1/products/{id}", () => "Hello World!");
-app.MapDelete("/v1/products/{id}", () => "Hello World!");
-
-app.MapGet("/v1/orders/{id}", () => "Hello World!");
-app.MapPost("/v1/orders", () => "Hello World!");
-
+app.UseHttpsRedirection();
+app.MapControllers();
 app.Run();

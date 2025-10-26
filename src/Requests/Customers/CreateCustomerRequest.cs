@@ -1,11 +1,10 @@
-using System.ComponentModel.DataAnnotations;
+using BugStore.Responses.Customers;
+using MediatR;
 
-namespace BugStore.Models;
+namespace BugStore.Requests.Customers;
 
-public class Customer
+public class CreateCustomerRequest : IRequest<CreateCustomerResponse>
 {
-    [Key]
-    public Guid Id { get; set; }
     public string Name { get; set; }
     public string Email { get; set; }
     public string Phone { get; set; }
