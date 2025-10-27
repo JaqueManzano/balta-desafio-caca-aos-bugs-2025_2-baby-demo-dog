@@ -1,20 +1,15 @@
-﻿using BugStore.Data;
-using BugStore.Requests.Products;
+﻿using BugStore.Requests.Products;
 using BugStore.Responses.Products;
+using BugStore.Services.Interfaces;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
-public class GetByIdProductHandler : IRequestHandler<GetByIdProductsRequest, GetByIdProductsResponse>
+namespace BugStore.Handlers.Products
 {
-    private readonly AppDbContext _context;
-    public GetByIdProductHandler(AppDbContext context) => _context = context;
-
-    public async Task<GetByIdProductsResponse> Handle(GetByIdProductsRequest request, CancellationToken cancellationToken)
+    public class GetByIdProductHandler(IProductsService _service) : IRequestHandler<GetByIdProductsRequest, GetByIdProductsResponse>
     {
-        var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken);
-        if (product == null)
-            return new GetByIdProductsResponse { Product = null, Message = "Product not found." };
-
-        return new GetByIdProductsResponse { Product = product, Message = "Product found." };
+        public async Task<GetByIdProductsResponse> Handle(GetByIdProductsRequest request, CancellationToken cancellationToken)
+        {
+            return await _service.GetByIdAsync(request.Id, cancellationToken);
+        }
     }
 }

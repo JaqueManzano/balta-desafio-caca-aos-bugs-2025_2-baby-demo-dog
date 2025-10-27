@@ -1,53 +1,32 @@
-﻿using BugStore.Data;
-using BugStore.Requests.Customers;
+﻿using BugStore.Requests.Customers;
 using BugStore.Responses.Customers;
+using BugStore.Services.Interfaces;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
-namespace BugStore.Handlers.Customers;
-
-public class DeleteCustomerHandler : IRequestHandler<DeleteCustomerRequest, DeleteCustomerResponse>
+namespace BugStore.Handlers.Customers
 {
-    private readonly AppDbContext _context;
-
-    public DeleteCustomerHandler(AppDbContext context)
+    public class DeleteCustomerHandler(ICustomerService _service) : IRequestHandler<DeleteCustomerRequest, DeleteCustomerResponse>
     {
-        _context = context;
-    }
-
-    public async Task<DeleteCustomerResponse> Handle(DeleteCustomerRequest request, CancellationToken cancellationToken)
-    {
-        try
+        public async Task<DeleteCustomerResponse> Handle(DeleteCustomerRequest request, CancellationToken cancellationToken)
         {
-            var customer = await _context.Customers
-          .FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken);
+            try
+            {
+                var (success, message) = await _service.DeleteCustomerAsync(request.Id, cancellationToken);
 
-            if (customer == null)
+                return new DeleteCustomerResponse
+                {
+                    Success = success,
+                    Message = message
+                };
+            }
+            catch (Exception)
             {
                 return new DeleteCustomerResponse
                 {
                     Success = false,
-                    Message = $"Customer with ID {request.Id} not found."
+                    Message = "The customer could not be deleted."
                 };
             }
-
-            _context.Customers.Remove(customer);
-            await _context.SaveChangesAsync(cancellationToken);
-
-            return new DeleteCustomerResponse
-            {
-                Success = true,
-                Message = $"Customer with ID {request.Id} successfully deleted."
-            };
         }
-        catch (Exception)
-        {
-            return new DeleteCustomerResponse
-            {
-                Success = false,
-                Message = $"The client could not be deleted."
-            };
-        }
-
     }
 }

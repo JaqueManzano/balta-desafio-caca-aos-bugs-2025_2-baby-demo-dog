@@ -1,33 +1,22 @@
-﻿using BugStore.Data;
-using BugStore.Requests.Customers;
+﻿using BugStore.Requests.Customers;
 using BugStore.Responses.Customers;
+using BugStore.Services.Interfaces;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace BugStore.Handlers.Customers
 {
-    public class GetByIdCustomerHandler(AppDbContext _context) : IRequestHandler<GetByIdCustomerRequest, GetByIdCustomerResponse>
+    public class GetByIdCustomerHandler(ICustomerService _service) : IRequestHandler<GetByIdCustomerRequest, GetByIdCustomerResponse>
     {
         public async Task<GetByIdCustomerResponse> Handle(GetByIdCustomerRequest request, CancellationToken cancellationToken)
         {
             try
             {
-                var customer = await _context.Customers
-            .FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken);
-
-                if (customer == null)
-                {
-                    return new GetByIdCustomerResponse
-                    {
-                        Customer = null,
-                        Message = $"Customer with ID {request.Id} not found."
-                    };
-                }
+                var (customer, message) = await _service.GetCustomerByIdAsync(request.Id, cancellationToken);
 
                 return new GetByIdCustomerResponse
                 {
                     Customer = customer,
-                    Message = $"Customer with ID {request.Id} found."
+                    Message = message
                 };
             }
             catch (Exception)
@@ -35,7 +24,7 @@ namespace BugStore.Handlers.Customers
                 return new GetByIdCustomerResponse
                 {
                     Customer = null,
-                    Message = $"The client could not be consulted."
+                    Message = "The customer could not be consulted."
                 };
             }
         }
